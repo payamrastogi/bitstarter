@@ -58,14 +58,14 @@ var checkHtmlFile = function(htmlfile, checksfile) {
 };
 
 var checkURL = function(url,checksfile){
-	rest.get(URL_DEFAULT).on('complete', function(result) {
+	rest.get(url).on('complete', function(result) {
   if (result instanceof Error) {
     sys.puts('Error: ' + result.message);
     this.retry(5000); // try again after 5 sec
   } else {
    // sys.puts(result);
 	fs.writeFile("url.html", result, function (err) {if (err) throw err;});
-	checkHtmlFile("url.html",checksfile);
+	//checkHtmlFile("url.html",checksfile);
   }
 });
 }
@@ -86,6 +86,7 @@ if(require.main == module) {
 		if(program.url)
 		{
 			checkURL(program.url, program.checks);
+			checkHtmlFile("url.html",program.checks);
 		}
 		else
 		{
