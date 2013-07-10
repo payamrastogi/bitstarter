@@ -20,7 +20,7 @@ References:
    - https://developer.mozilla.org/en-US/docs/JSON
    - https://developer.mozilla.org/en-US/docs/JSON#JSON_in_Firefox_2
 */
-
+rest = require('restler');
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
@@ -52,8 +52,23 @@ var checkHtmlFile = function(htmlfile, checksfile) {
         var present = $(checks[ii]).length > 0;
         out[checks[ii]] = present;
     }
-    return out;
+    //return out;
+	var outJson = JSON.stringify(out, null, 4);
+	console.log(outJson);
 };
+
+var checkURL = function(url,checksfile){
+	rest.get(URL_DEFAULT).on('complete', function(result) {
+  if (result instanceof Error) {
+    sys.puts('Error: ' + result.message);
+    this.retry(5000); // try again after 5 sec
+  } else {
+   // sys.puts(result);
+	fs.writeFile("url.html", result, function (err) {if (err) throw err;});
+	checkHtmlFile("url.html",checksfile);
+  }
+});
+}
 
 var clone = function(fn) {
     // Workaround for commander.js issue.
@@ -65,10 +80,17 @@ if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+		.option('-u, --url <url_addr>', 'url of a website', '', '')
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+		var checkJson = undefined;
+		if(program.url)
+		{
+			checkURL(program.url, program.checks);
+		}
+		else
+		{
+			checkHtmlFile(program.file, program.checks);
+		}
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
